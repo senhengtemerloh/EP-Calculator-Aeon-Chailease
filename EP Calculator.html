@@ -1,0 +1,170 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Installment Calculator with Multiple Items</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            padding: 20px;
+            margin: 0;
+            background-color: #f4f4f4;
+        }
+        .container {
+            max-width: 400px;
+            margin: 0 auto;
+            background: #fff;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.1);
+        }
+        h1 {
+            text-align: center;
+            font-size: 24px;
+            margin-bottom: 20px;
+        }
+        label {
+            font-size: 18px;
+            display: block;
+            margin-bottom: 10px;
+        }
+        input, select {
+            width: 100%;
+            padding: 12px;
+            font-size: 18px;
+            margin-bottom: 20px;
+            border-radius: 8px;
+            border: 1px solid #ccc;
+        }
+        button {
+            width: 100%;
+            padding: 15px;
+            font-size: 20px;
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+        }
+        button:hover {
+            background-color: #45a049;
+        }
+        .reset-button {
+            background-color: #f44336;
+        }
+        .reset-button:hover {
+            background-color: #e53935;
+        }
+        .result, .loan-total {
+            text-align: center;
+            font-size: 22px;
+            font-weight: bold;
+            margin-top: 20px;
+        }
+        .item-row {
+            margin-bottom: 10px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Installment Calculator</h1>
+        <div id="item-container">
+            <div class="item-row">
+                <label for="item1">Item 1 (MYR):</label>
+                <input type="number" class="item" placeholder="Enter amount" />
+            </div>
+        </div>
+
+        <button type="button" onclick="addItem()">Add Item</button>
+
+        <div class="loan-total" id="loan-total">Total Loan Price: RM 0.00</div>
+
+        <label for="tenure">Choose Tenure (months):</label>
+        <select id="tenure">
+            <option value="6">6 months</option>
+            <option value="9">9 months</option>
+            <option value="12">12 months</option>
+            <option value="18">18 months</option>
+            <option value="24">24 months</option>
+            <option value="30">30 months</option>
+            <option value="36">36 months</option>
+        </select>
+
+        <button onclick="calculateInstallment()">Calculate</button>
+        <button class="reset-button" onclick="resetForm()">Reset</button>
+
+        <div class="result" id="result"></div>
+    </div>
+
+    <script>
+        let itemCount = 1;
+
+        function addItem() {
+            itemCount++;
+            const itemContainer = document.getElementById('item-container');
+            
+            const itemDiv = document.createElement('div');
+            itemDiv.classList.add('item-row');
+            itemDiv.innerHTML = `
+                <label for="item${itemCount}">Item ${itemCount} (MYR):</label>
+                <input type="number" class="item" placeholder="Enter amount" oninput="updateTotalLoan()" />
+            `;
+            itemContainer.appendChild(itemDiv);
+        }
+
+        function updateTotalLoan() {
+            const items = document.querySelectorAll('.item');
+            let totalPrice = 0;
+
+            items.forEach(item => {
+                const value = parseFloat(item.value);
+                if (!isNaN(value) && value > 0) {
+                    totalPrice += value;
+                }
+            });
+
+            document.getElementById('loan-total').textContent = `Total Loan Price: RM ${totalPrice.toFixed(2)}`;
+        }
+
+        function calculateInstallment() {
+            const items = document.querySelectorAll('.item');
+            let totalPrice = 0;
+
+            items.forEach(item => {
+                const value = parseFloat(item.value);
+                if (!isNaN(value) && value > 0) {
+                    totalPrice += value;
+                }
+            });
+
+            const tenure = parseInt(document.getElementById('tenure').value);
+            const interestRate = 1.25 / 100; // 1.25% monthly interest rate
+
+            if (totalPrice <= 0) {
+                document.getElementById('result').textContent = "Please enter valid prices for items.";
+                return;
+            }
+
+            // Flat rate calculation
+            const totalAmount = totalPrice + (totalPrice * interestRate * tenure);
+            const monthlyPayment = totalAmount / tenure;
+
+            document.getElementById('result').textContent = `Monthly Installment: RM ${monthlyPayment.toFixed(2)}`;
+        }
+
+        function resetForm() {
+            document.getElementById('item-container').innerHTML = `
+                <div class="item-row">
+                    <label for="item1">Item 1 (MYR):</label>
+                    <input type="number" class="item" placeholder="Enter amount" oninput="updateTotalLoan()" />
+                </div>
+            `;
+            itemCount = 1;
+            document.getElementById('loan-total').textContent = "Total Loan Price: RM 0.00";
+            document.getElementById('result').textContent = "";
+        }
+    </script>
+</body>
+</html>
