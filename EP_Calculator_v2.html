@@ -1,0 +1,182 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>EP Calculator (Aeon & Chailease)</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #f4f4f4;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+        }
+        .container {
+            background: #fff;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+            max-width: 90%;
+            width: 500px;
+            text-align: center;
+        }
+        h1 {
+            margin-bottom: 20px;
+            color: #333;
+        }
+        label, input, select, button {
+            font-size: 18px;
+            margin: 10px 0;
+            display: block;
+            width: 100%;
+        }
+        input, select {
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            box-sizing: border-box;
+        }
+        button {
+            padding: 15px;
+            border: none;
+            border-radius: 5px;
+            color: #fff;
+            font-size: 18px;
+            cursor: pointer;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+            margin: 10px 0;
+        }
+        button:hover {
+            opacity: 0.8;
+        }
+        .btn-calculate {
+            background-color: #28a745;
+        }
+        .btn-reset {
+            background-color: #dc3545;
+        }
+        #result {
+            font-size: 24px;
+            font-weight: bold;
+            margin-top: 20px;
+            color: #333;
+        }
+        .btn-add {
+            width: 50px;
+            padding: 10px;
+            background-color: #007bff;
+            font-size: 24px;
+            border-radius: 50%;
+        }
+        #totalAmount {
+            font-size: 20px;
+            font-weight: bold;
+            margin-top: 10px;
+            color: #555;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <h1>EP Calculator</h1>
+
+        <div id="items">
+            <div>
+                <label for="item1">Item 1 (RM):</label>
+                <input type="number" class="item" placeholder="Enter price">
+            </div>
+        </div>
+
+        <button class="btn-add" onclick="addItem()">+</button>
+
+        <div>
+            <label for="interestRate">Interest Rate (%):</label>
+            <input type="number" id="interestRate" placeholder="Enter interest rate">
+        </div>
+
+        <div>
+            <label for="tenure">Tenure (Months):</label>
+            <select id="tenure">
+                <option value="6">6 Months</option>
+                <option value="9">9 Months</option>
+                <option value="12">12 Months</option>
+                <option value="18">18 Months</option>
+                <option value="24">24 Months</option>
+                <option value="30">30 Months</option>
+                <option value="36">36 Months</option>
+                <option value="48">48 Months</option>
+            </select>
+        </div>
+
+        <button class="btn-calculate" onclick="calculateInstallment()">Calculate</button>
+        <button class="btn-reset" onclick="resetCalculator()">Reset</button>
+
+        <div id="result"></div>
+        <div id="totalAmount"></div>
+    </div>
+
+    <script>
+        function addItem() {
+            const itemsDiv = document.getElementById('items');
+            const newItemDiv = document.createElement('div');
+            const itemCount = itemsDiv.getElementsByTagName('input').length + 1;
+
+            newItemDiv.innerHTML = `
+                <label for="item${itemCount}">Item ${itemCount} (RM):</label>
+                <input type="number" class="item" placeholder="Enter price">
+            `;
+
+            itemsDiv.appendChild(newItemDiv);
+        }
+
+        function calculateInstallment() {
+            const items = document.querySelectorAll('.item');
+            let totalPrice = 0;
+
+            items.forEach(item => {
+                const value = parseFloat(item.value);
+                if (!isNaN(value) && value > 0) {
+                    totalPrice += value;
+                }
+            });
+
+            const tenure = parseInt(document.getElementById('tenure').value);
+            const interestRate = parseFloat(document.getElementById('interestRate').value) / 100; // User-entered interest rate
+
+            if (totalPrice <= 0 || isNaN(interestRate) || interestRate < 0) {
+                document.getElementById('result').textContent = "Please enter valid prices for items and interest rate.";
+                return;
+            }
+
+            // Flat rate calculation
+            const totalAmount = totalPrice + (totalPrice * interestRate * tenure);
+            const monthlyPayment = totalAmount / tenure;
+
+            // Rounded to nearest whole number
+            const roundedPayment = Math.round(monthlyPayment);
+
+            document.getElementById('result').textContent = `Monthly Installment: RM ${roundedPayment}`;
+            document.getElementById('totalAmount').textContent = `Total Finance Amount: RM ${totalPrice.toFixed(2)}`;
+        }
+
+        function resetCalculator() {
+            document.getElementById('items').innerHTML = `
+                <div>
+                    <label for="item1">Item 1 (RM):</label>
+                    <input type="number" class="item" placeholder="Enter price">
+                </div>
+            `;
+            document.getElementById('interestRate').value = '';
+            document.getElementById('tenure').value = '6';
+            document.getElementById('result').textContent = '';
+            document.getElementById('totalAmount').textContent = '';
+        }
+    </script>
+
+</body>
+</html>
