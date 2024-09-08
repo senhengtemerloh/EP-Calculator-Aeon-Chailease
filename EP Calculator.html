@@ -102,6 +102,11 @@
         <button class="btn-add" onclick="addItem()">+</button>
 
         <div>
+            <label for="deposit">Deposit (Optional) (RM):</label>
+            <input type="number" id="deposit" placeholder="Enter deposit amount" oninput="checkFields()">
+        </div>
+
+        <div>
             <label for="tenure">Tenure (Months):</label>
             <select id="tenure" onchange="checkFields()">
                 <option value="">Select Tenure</option>
@@ -171,19 +176,28 @@
 
             const tenure = parseInt(document.getElementById('tenure').value);
             const interestRate = 1.25 / 100; // Fixed interest rate of 1.25%
+            const deposit = parseFloat(document.getElementById('deposit').value) || 0; // Default to 0 if no deposit
 
-            const totalAmount = totalPrice + (totalPrice * interestRate * tenure);
+            if (deposit >= totalPrice) {
+                document.getElementById('error').textContent = "Error: Deposit cannot be greater than or equal to the total price.";
+                document.getElementById('result').textContent = '';
+                document.getElementById('totalAmount').textContent = '';
+                return;
+            }
+
+            const financeAmount = totalPrice - deposit;
+            const totalAmount = financeAmount + (financeAmount * interestRate * tenure);
             const monthlyPayment = totalAmount / tenure;
 
             const roundedPayment = Math.round(monthlyPayment);
 
             if (roundedPayment < 48) {
-                document.getElementById('error').textContent = "Error: Monthly installment should not be less than RM48. Please adjust the item price.";
+                document.getElementById('error').textContent = "Error: Monthly installment should not be less than RM48. Please adjust the item price or deposit.";
                 document.getElementById('result').textContent = '';
                 document.getElementById('totalAmount').textContent = '';
             } else {
                 document.getElementById('result').textContent = `Monthly Installment: RM ${roundedPayment}`;
-                document.getElementById('totalAmount').textContent = `Total Finance Amount: RM ${totalPrice.toFixed(2)}`;
+                document.getElementById('totalAmount').textContent = `Total Finance Amount: RM ${financeAmount.toFixed(2)}`;
                 document.getElementById('error').textContent = ''; // Clear any error message
             }
         }
@@ -195,6 +209,7 @@
                     <input type="number" class="item" placeholder="Enter price" oninput="checkFields()">
                 </div>
             `;
+            document.getElementById('deposit').value = '';
             document.getElementById('tenure').value = '';
             document.getElementById('result').textContent = '';
             document.getElementById('totalAmount').textContent = '';
