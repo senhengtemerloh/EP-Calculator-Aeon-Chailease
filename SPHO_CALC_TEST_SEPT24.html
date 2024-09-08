@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Phone Price Calculator</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            background-color: #f7f7f7;
+            color: #333;
+            text-align: center;
+        }
+        h1 {
+            color: #007bff;
+            font-size: 24px;
+        }
+        select, button {
+            font-size: 18px;
+            padding: 10px;
+            margin: 10px;
+            border-radius: 5px;
+            border: none;
+            width: 80%;
+        }
+        button {
+            background-color: #28a745;
+            color: white;
+            cursor: pointer;
+        }
+        button:hover {
+            background-color: #218838;
+        }
+        input[type="checkbox"] {
+            margin-right: 10px;
+        }
+        .price-summary {
+            margin: 20px 0;
+            font-size: 20px;
+        }
+        .receipt {
+            margin-top: 20px;
+            padding: 10px;
+            background-color: #e9ecef;
+            border-radius: 10px;
+            font-size: 18px;
+        }
+    </style>
+</head>
+<body>
+    <h1>Phone Price Calculator</h1>
+    <label for="brand">Choose a brand:</label>
+    <select id="brand" onchange="populateModels()">
+        <option value="">Select Brand</option>
+        <option value="HONOR">HONOR</option>
+        <option value="OPPO">OPPO</option>
+        <option value="ONEPLUS">ONEPLUS</option>
+        <option value="VIVO">VIVO</option>
+        <option value="HUAWEI">HUAWEI</option>
+        <option value="XIAOMI">XIAOMI</option>
+    </select>
+
+    <label for="model">Choose a model:</label>
+    <select id="model"></select>
+
+    <div>
+        <input type="checkbox" id="vcare"> <label for="vcare">Add V-Care</label><br>
+        <input type="checkbox" id="mpp"> <label for="mpp">Add MPP</label>
+    </div>
+
+    <button onclick="calculatePrice()">Calculate EP</button>
+
+    <div id="summary" class="price-summary"></div>
+    <div id="installments" class="price-summary"></div>
+    <div id="receipt" class="receipt"></div>
+
+    <script>
+        const phones = {
+            "HONOR": {
+                "Magic V2 (16GB+512GB)": { promoPrice: 5699, discount: 0, vcare: 620, mpp: 278 },
+                "Magic6 Pro 5G (12GB+512GB)": { promoPrice: 4469, discount: 200, vcare: 554, mpp: 245 },
+                "200 Pro 5G (12GB+512GB)": { promoPrice: 2689, discount: 50, vcare: 320, mpp: 178 },
+                "200 5G (12GB+512GB)": { promoPrice: 2189, discount: 50, vcare: 268, mpp: 178 },
+                "200 5G (12GB+256GB)": { promoPrice: 1889, discount: 90, vcare: 218, mpp: 144 },
+                "X9b 5G (12GB+512GB)": { promoPrice: 1699, discount: 0, vcare: 169, mpp: 144 },
+                "X7b 5G (8GB+256GB)": { promoPrice: 789, discount: 0, vcare: 128, mpp: 111 }
+            },
+            "OPPO": {
+                "Find N3 Flip (12GB+256GB)": { promoPrice: 3999, discount: 0, vcare: 445, mpp: 211 },
+                "Reno12 Pro 5G (12GB+512GB)": { promoPrice: 2599, discount: 0, vcare: 320, mpp: 178 },
+                "Reno12 5G (12GB+512GB)": { promoPrice: 2199, discount: 130, vcare: 268, mpp: 178 },
+                "Reno12 F 5G (12GB+512GB)": { promoPrice: 1799, discount: 0, vcare: 218, mpp: 144 },
+                "A79 5G (8GB+256GB)": { promoPrice: 1099, discount: 0, vcare: 169, mpp: 144 }
+            },
+            "ONEPLUS": {
+                "OnePlus 12 (16GB+512GB)": { promoPrice: 4499, discount: 0, vcare: 482, mpp: 245 }
+            },
+            "VIVO": {
+                "V40 5G (12GB+512GB)": { promoPrice: 3999, discount: 0, vcare: 320, mpp: 178 },
+                "V40e 5G (8GB+256GB)": { promoPrice: 1499, discount: 0, vcare: 169, mpp: 144 },
+                "Y27 (8GB+256GB)": { promoPrice: 749, discount: 0, vcare: 101, mpp: 101 }
+            },
+            "HUAWEI": {
+                "Pura 70 (12GB+512GB)": { promoPrice: 3699, discount: 0, vcare: 445, mpp: 211 }
+            },
+            "XIAOMI": {
+                "Xiaomi 14 Ultra 5G (16GB+512GB)": { promoPrice: 5799, discount: 0, vcare: 678, mpp: 278 },
+                "Xiaomi 14 Pro 5G (12GB+512GB)": { promoPrice: 4399, discount: 0, vcare: 445, mpp: 211 }
+            }
+        };
+
+        function populateModels() {
+            const brand = document.getElementById('brand').value;
+            const modelSelect = document.getElementById('model');
+            modelSelect.innerHTML = '<option value="">Select Model</option>';
+            if (brand && phones[brand]) {
+                Object.keys(phones[brand]).forEach(model => {
+                    modelSelect.innerHTML += `<option value="${model}">${model}</option>`;
+                });
+            }
+        }
+
+        function calculatePrice() {
+            const brand = document.getElementById('brand').value;
+            const model = document.getElementById('model').value;
+            const addVcare = document.getElementById('vcare').checked;
+            const addMpp = document.getElementById('mpp').checked;
+
+            if (!brand || !model) {
+                document.getElementById('summary').innerHTML = '<p>Please select a brand and model.</p>';
+                return;
+            }
+
+            const phoneData = phones[brand][model];
+            const basePrice = phoneData.promoPrice - (phoneData.discount || 0);
+            const vcarePrice = addVcare ? phoneData.vcare : 0;
+            const mppPrice = addMpp ? phoneData.mpp : 0;
+            const finalPrice = basePrice + vcarePrice + mppPrice;
+
+            document.getElementById('summary').innerHTML = `<h2>Total Price: RM${finalPrice.toFixed(2)}</h2>`;
+
+            const interestRate = 0.0125;
+            const installments = [6, 12, 18, 24, 30, 36, 48];
+            let installmentDetails = `<h2>Installment Options:</h2>`;
+            installments.forEach(months => {
+                const monthlyInstallment = (finalPrice * (1 + (interestRate * months))) / months;
+                installmentDetails += `<p>${months}mths = RM${monthlyInstallment.toFixed(2)}</p>`;
+            });
+
+            document.getElementById('installments').innerHTML = installmentDetails;
+
+            // Show receipt details
+            const receiptDetails = `
+                <h3>Receipt</h3>
+                <p>Model: ${model}</p>
+                <p>Promo Price: RM${phoneData.promoPrice.toFixed(2)}</p>
+                <p>Discount: RM${phoneData.discount.toFixed(2)}</p>
+                <p>V-Care: RM${vcarePrice.toFixed(2)}</p>
+                <p>MPP: RM${mppPrice.toFixed(2)}</p>
+                <p><strong>Total Payable: RM${finalPrice.toFixed(2)}</strong></p>
+            `;
+            document.getElementById('receipt').innerHTML = receiptDetails;
+        }
+    </script>
+</body>
+</html>
