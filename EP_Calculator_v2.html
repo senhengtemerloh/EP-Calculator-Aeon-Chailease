@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>EP Calculator (Aeon & Chailease)</title>
+    <title>Installment Calculator</title>
     <style>
         body {
             font-family: Arial, sans-serif;
@@ -50,8 +50,9 @@
             box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
             margin: 10px 0;
         }
-        button:hover {
-            opacity: 0.8;
+        button:disabled {
+            background-color: #cccccc;
+            cursor: not-allowed;
         }
         .btn-calculate {
             background-color: #28a745;
@@ -59,7 +60,7 @@
         .btn-reset {
             background-color: #dc3545;
         }
-        #result {
+        #result, #totalAmount {
             font-size: 24px;
             font-weight: bold;
             margin-top: 20px;
@@ -72,23 +73,17 @@
             font-size: 24px;
             border-radius: 50%;
         }
-        #totalAmount {
-            font-size: 20px;
-            font-weight: bold;
-            margin-top: 10px;
-            color: #555;
-        }
     </style>
 </head>
 <body>
 
     <div class="container">
-        <h1>EP Calculator</h1>
+        <h1>Installment Calculator</h1>
 
         <div id="items">
             <div>
                 <label for="item1">Item 1 (RM):</label>
-                <input type="number" class="item" placeholder="Enter price">
+                <input type="number" class="item" placeholder="Enter price" oninput="checkFields()">
             </div>
         </div>
 
@@ -96,12 +91,13 @@
 
         <div>
             <label for="interestRate">Interest Rate (%):</label>
-            <input type="number" id="interestRate" placeholder="Enter interest rate">
+            <input type="number" id="interestRate" placeholder="Enter interest rate" oninput="checkFields()">
         </div>
 
         <div>
             <label for="tenure">Tenure (Months):</label>
-            <select id="tenure">
+            <select id="tenure" onchange="checkFields()">
+                <option value="">Select Tenure</option>
                 <option value="6">6 Months</option>
                 <option value="9">9 Months</option>
                 <option value="12">12 Months</option>
@@ -113,7 +109,7 @@
             </select>
         </div>
 
-        <button class="btn-calculate" onclick="calculateInstallment()">Calculate</button>
+        <button class="btn-calculate" onclick="calculateInstallment()" id="calculateButton" disabled>Calculate</button>
         <button class="btn-reset" onclick="resetCalculator()">Reset</button>
 
         <div id="result"></div>
@@ -128,10 +124,32 @@
 
             newItemDiv.innerHTML = `
                 <label for="item${itemCount}">Item ${itemCount} (RM):</label>
-                <input type="number" class="item" placeholder="Enter price">
+                <input type="number" class="item" placeholder="Enter price" oninput="checkFields()">
             `;
 
             itemsDiv.appendChild(newItemDiv);
+        }
+
+        function checkFields() {
+            const items = document.querySelectorAll('.item');
+            let allItemsFilled = true;
+
+            items.forEach(item => {
+                if (!item.value || parseFloat(item.value) <= 0) {
+                    allItemsFilled = false;
+                }
+            });
+
+            const interestRate = document.getElementById('interestRate').value;
+            const tenure = document.getElementById('tenure').value;
+
+            const calculateButton = document.getElementById('calculateButton');
+
+            if (allItemsFilled && interestRate && parseFloat(interestRate) > 0 && tenure) {
+                calculateButton.disabled = false;
+            } else {
+                calculateButton.disabled = true;
+            }
         }
 
         function calculateInstallment() {
@@ -146,18 +164,11 @@
             });
 
             const tenure = parseInt(document.getElementById('tenure').value);
-            const interestRate = parseFloat(document.getElementById('interestRate').value) / 100; // User-entered interest rate
+            const interestRate = parseFloat(document.getElementById('interestRate').value) / 100;
 
-            if (totalPrice <= 0 || isNaN(interestRate) || interestRate < 0) {
-                document.getElementById('result').textContent = "Please enter valid prices for items and interest rate.";
-                return;
-            }
-
-            // Flat rate calculation
             const totalAmount = totalPrice + (totalPrice * interestRate * tenure);
             const monthlyPayment = totalAmount / tenure;
 
-            // Rounded to nearest whole number
             const roundedPayment = Math.round(monthlyPayment);
 
             document.getElementById('result').textContent = `Monthly Installment: RM ${roundedPayment}`;
@@ -168,13 +179,14 @@
             document.getElementById('items').innerHTML = `
                 <div>
                     <label for="item1">Item 1 (RM):</label>
-                    <input type="number" class="item" placeholder="Enter price">
+                    <input type="number" class="item" placeholder="Enter price" oninput="checkFields()">
                 </div>
             `;
             document.getElementById('interestRate').value = '';
-            document.getElementById('tenure').value = '6';
+            document.getElementById('tenure').value = '';
             document.getElementById('result').textContent = '';
             document.getElementById('totalAmount').textContent = '';
+            document.getElementById('calculateButton').disabled = true;
         }
     </script>
 
