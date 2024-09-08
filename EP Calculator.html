@@ -3,129 +3,159 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Installment Calculator with Multiple Items</title>
+    <title>Installment Calculator</title>
     <style>
         body {
             font-family: Arial, sans-serif;
-            padding: 20px;
             margin: 0;
+            padding: 0;
             background-color: #f4f4f4;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
         }
         .container {
-            max-width: 400px;
-            margin: 0 auto;
             background: #fff;
             padding: 20px;
             border-radius: 10px;
-            box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.1);
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+            max-width: 90%;
+            width: 500px;
+            text-align: center;
         }
         h1 {
-            text-align: center;
-            font-size: 24px;
             margin-bottom: 20px;
+            color: #333;
         }
-        label {
+        label, input, select, button {
             font-size: 18px;
+            margin: 10px 0;
             display: block;
-            margin-bottom: 10px;
+            width: 100%;
         }
         input, select {
-            width: 100%;
-            padding: 12px;
-            font-size: 18px;
-            margin-bottom: 20px;
-            border-radius: 8px;
-            border: 1px solid #ccc;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            box-sizing: border-box;
         }
         button {
-            width: 100%;
             padding: 15px;
-            font-size: 20px;
-            background-color: #4CAF50;
-            color: white;
             border: none;
-            border-radius: 8px;
+            border-radius: 5px;
+            color: #fff;
+            font-size: 18px;
             cursor: pointer;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+            margin: 10px 0;
         }
-        button:hover {
-            background-color: #45a049;
+        button:disabled {
+            background-color: #cccccc;
+            cursor: not-allowed;
         }
-        .reset-button {
-            background-color: #f44336;
+        .btn-calculate {
+            background-color: #28a745;
         }
-        .reset-button:hover {
-            background-color: #e53935;
+        .btn-reset {
+            background-color: #dc3545;
         }
-        .result, .loan-total {
-            text-align: center;
-            font-size: 22px;
+        #result {
+            font-size: 32px;
+            font-weight: bold;
+            margin-top: 20px;
+            color: #28a745;
+        }
+        #totalAmount {
+            font-size: 24px;
+            font-weight: normal;
+            margin-top: 10px;
+            color: #333;
+        }
+        #error {
+            color: #dc3545;
+            font-size: 18px;
             font-weight: bold;
             margin-top: 20px;
         }
-        .item-row {
-            margin-bottom: 10px;
+        .btn-add {
+            width: 50px;
+            padding: 10px;
+            background-color: #007bff;
+            font-size: 24px;
+            border-radius: 50%;
         }
     </style>
 </head>
 <body>
+
     <div class="container">
         <h1>Installment Calculator</h1>
-        <div id="item-container">
-            <div class="item-row">
-                <label for="item1">Item 1 (MYR):</label>
-                <input type="number" class="item" placeholder="Enter amount" />
+
+        <div id="items">
+            <div>
+                <label for="item1">Item 1 (RM):</label>
+                <input type="number" class="item" placeholder="Enter price" oninput="checkFields()">
             </div>
         </div>
 
-        <button type="button" onclick="addItem()">Add Item</button>
+        <button class="btn-add" onclick="addItem()">+</button>
 
-        <div class="loan-total" id="loan-total">Total Loan Price: RM 0.00</div>
+        <div>
+            <label for="tenure">Tenure (Months):</label>
+            <select id="tenure" onchange="checkFields()">
+                <option value="">Select Tenure</option>
+                <option value="6">6 Months</option>
+                <option value="9">9 Months</option>
+                <option value="12">12 Months</option>
+                <option value="18">18 Months</option>
+                <option value="24">24 Months</option>
+                <option value="30">30 Months</option>
+                <option value="36">36 Months</option>
+                <option value="48">48 Months</option>
+            </select>
+        </div>
 
-        <label for="tenure">Choose Tenure (months):</label>
-        <select id="tenure">
-            <option value="6">6 months</option>
-            <option value="9">9 months</option>
-            <option value="12">12 months</option>
-            <option value="18">18 months</option>
-            <option value="24">24 months</option>
-            <option value="30">30 months</option>
-            <option value="36">36 months</option>
-        </select>
+        <button class="btn-calculate" onclick="calculateInstallment()" id="calculateButton" disabled>Calculate</button>
+        <button class="btn-reset" onclick="resetCalculator()">Reset</button>
 
-        <button onclick="calculateInstallment()">Calculate</button>
-        <button class="reset-button" onclick="resetForm()">Reset</button>
-
-        <div class="result" id="result"></div>
+        <div id="result"></div>
+        <div id="totalAmount"></div>
+        <div id="error"></div>
     </div>
 
     <script>
-        let itemCount = 1;
-
         function addItem() {
-            itemCount++;
-            const itemContainer = document.getElementById('item-container');
-            
-            const itemDiv = document.createElement('div');
-            itemDiv.classList.add('item-row');
-            itemDiv.innerHTML = `
-                <label for="item${itemCount}">Item ${itemCount} (MYR):</label>
-                <input type="number" class="item" placeholder="Enter amount" oninput="updateTotalLoan()" />
+            const itemsDiv = document.getElementById('items');
+            const newItemDiv = document.createElement('div');
+            const itemCount = itemsDiv.getElementsByTagName('input').length + 1;
+
+            newItemDiv.innerHTML = `
+                <label for="item${itemCount}">Item ${itemCount} (RM):</label>
+                <input type="number" class="item" placeholder="Enter price" oninput="checkFields()">
             `;
-            itemContainer.appendChild(itemDiv);
+
+            itemsDiv.appendChild(newItemDiv);
         }
 
-        function updateTotalLoan() {
+        function checkFields() {
             const items = document.querySelectorAll('.item');
-            let totalPrice = 0;
+            let allItemsFilled = true;
 
             items.forEach(item => {
-                const value = parseFloat(item.value);
-                if (!isNaN(value) && value > 0) {
-                    totalPrice += value;
+                if (!item.value || parseFloat(item.value) <= 0) {
+                    allItemsFilled = false;
                 }
             });
 
-            document.getElementById('loan-total').textContent = `Total Loan Price: RM ${totalPrice.toFixed(2)}`;
+            const tenure = document.getElementById('tenure').value;
+            const calculateButton = document.getElementById('calculateButton');
+
+            if (allItemsFilled && tenure) {
+                calculateButton.disabled = false;
+            } else {
+                calculateButton.disabled = true;
+            }
         }
 
         function calculateInstallment() {
@@ -140,31 +170,38 @@
             });
 
             const tenure = parseInt(document.getElementById('tenure').value);
-            const interestRate = 1.25 / 100; // 1.25% monthly interest rate
+            const interestRate = 1.25 / 100; // Fixed interest rate of 1.25%
 
-            if (totalPrice <= 0) {
-                document.getElementById('result').textContent = "Please enter valid prices for items.";
-                return;
-            }
-
-            // Flat rate calculation
             const totalAmount = totalPrice + (totalPrice * interestRate * tenure);
             const monthlyPayment = totalAmount / tenure;
 
-            document.getElementById('result').textContent = `Monthly Installment: RM ${monthlyPayment.toFixed(2)}`;
+            const roundedPayment = Math.round(monthlyPayment);
+
+            if (roundedPayment < 48) {
+                document.getElementById('error').textContent = "Error: Monthly installment should not be less than RM48. Please adjust the item price.";
+                document.getElementById('result').textContent = '';
+                document.getElementById('totalAmount').textContent = '';
+            } else {
+                document.getElementById('result').textContent = `Monthly Installment: RM ${roundedPayment}`;
+                document.getElementById('totalAmount').textContent = `Total Finance Amount: RM ${totalPrice.toFixed(2)}`;
+                document.getElementById('error').textContent = ''; // Clear any error message
+            }
         }
 
-        function resetForm() {
-            document.getElementById('item-container').innerHTML = `
-                <div class="item-row">
-                    <label for="item1">Item 1 (MYR):</label>
-                    <input type="number" class="item" placeholder="Enter amount" oninput="updateTotalLoan()" />
+        function resetCalculator() {
+            document.getElementById('items').innerHTML = `
+                <div>
+                    <label for="item1">Item 1 (RM):</label>
+                    <input type="number" class="item" placeholder="Enter price" oninput="checkFields()">
                 </div>
             `;
-            itemCount = 1;
-            document.getElementById('loan-total').textContent = "Total Loan Price: RM 0.00";
-            document.getElementById('result').textContent = "";
+            document.getElementById('tenure').value = '';
+            document.getElementById('result').textContent = '';
+            document.getElementById('totalAmount').textContent = '';
+            document.getElementById('error').textContent = '';
+            document.getElementById('calculateButton').disabled = true;
         }
     </script>
+
 </body>
 </html>
